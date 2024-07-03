@@ -1,10 +1,8 @@
-from typing import List, Type
-
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from models.todo import Todo
-from schemas.todo import SchemaBaseTodo, SchemaUpdateTodo, SchemaTodo
+from schemas.todo import SchemaBaseTodo, SchemaUpdateTodo
 
 
 def get_todo_id(db: Session, id: int):
@@ -15,7 +13,7 @@ def get_todo_id(db: Session, id: int):
     return todo
 
 
-def get_todos(db: Session, skip: int = 0, limit: int = 100) -> list[Type[Todo]]:
+def get_todos(db: Session, skip: int = 0, limit: int = 100):
     # return db.query(Todo).offset(skip).limit(limit).all()
 
     stmt = select(Todo).offset(skip).limit(limit)
