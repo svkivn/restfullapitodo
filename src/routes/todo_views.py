@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, Path, status, HTTPException
 from sqlalchemy.orm import Session
 
-from database import get_db
-from schemas.todo import SchemaBaseTodo, SchemaTodo, SchemaUpdateTodo
-from services.crud_todo import TodoRepo
+from ..database import get_db
+from ..schemas.todo import SchemaBaseTodo, SchemaTodo, SchemaUpdateTodo
+from ..services.crud_todo import TodoRepo
 
 router = APIRouter(prefix="/todo", tags=["Todo RESTfull API"])
 

@@ -1,8 +1,8 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from models.todo import Todo
-from schemas.todo import SchemaBaseTodo, SchemaUpdateTodo
+from ..models.todo import Todo
+from ..schemas.todo import SchemaBaseTodo, SchemaUpdateTodo
 
 
 class TodoRepo:
