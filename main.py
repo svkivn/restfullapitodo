@@ -1,8 +1,8 @@
-from fastapi import FastAPI, Depends, Path, HTTPException, Body
+from fastapi import FastAPI, Depends, Path, HTTPException, status
 from sqlalchemy.orm import Session
 from database import SessionLocal, Base, engine
-from schemas.todo import SchemaTodo, SchemaBaseTodo, SchemaUpdateTodo, ListTodosSchema
-import crud
+from schemas.todo import SchemaTodo, SchemaBaseTodo, SchemaUpdateTodo
+from services import crud_todo as crud
 
 app = FastAPI()
 Base.metadata.create_all(bind=engine)
@@ -44,7 +44,7 @@ def read_todo(id: int = Path(..., gt=0), db: Session = Depends(get_db)):
     return todo
 
 
-@app.put("/todos/{id}/", response_model=SchemaTodo)
+@app.put("/todos/{id}/", response_model=SchemaTodo, status_code=status.HTTP_200_OK)
 def update_note(payload: SchemaUpdateTodo, db: Session = Depends(get_db), id: int = Path(..., gt=0)):
     todo = crud.get_todo_id(db=db, id=id)
     if not todo:
@@ -53,10 +53,12 @@ def update_note(payload: SchemaUpdateTodo, db: Session = Depends(get_db), id: in
     return todo
 
 
-@app.delete("/todos/{id}", response_model=SchemaTodo)
+@app.delete("/todos/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_note(db: Session = Depends(get_db), id: int = Path(..., gt=0)):
     todo = crud.get_todo_id(db=db, id=id)
     if not todo:
         raise HTTPException(status_code=404, detail=f"Todo with {id} not found")
-    todo = crud.delete_todo(db=db, todo=todo)
-    return todo
+    crud.delete_todo(db=db, todo=todo)
+
+    #return Response(status_code=status.HTTP_204_NO_CONTENT)
+
