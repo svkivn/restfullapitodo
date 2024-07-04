@@ -25,3 +25,6 @@ def get_db():
     finally:
         db.close()
         print("closed")
+
+# from sqlalchemy.ext.declarative import declarative_base
+# Base = declarative_base()
