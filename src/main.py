@@ -5,8 +5,11 @@ from .database import Base, engine
 app = FastAPI(title="FastAPI - APP", description="Academy ITStep")
 app.include_router(router_todo)
 
-Base.metadata.create_all(bind=engine)
 
+
+@app.on_event("startup")
+async def on_startup():
+    Base.metadata.create_all(bind=engine)
 
 
 # if __name__ == "__main__":
