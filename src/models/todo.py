@@ -9,7 +9,7 @@ class Todo(Base):
     __tablename__ = "todos"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    title: Mapped[str] = mapped_column(String(200))
+    title: Mapped[str] = mapped_column(String(100))
     complete: Mapped[bool | None] = mapped_column(default=False)
 
     #type: Mapped[TypeTodo] = mapped_column(Enum(TypeTodo), nullable=True)
