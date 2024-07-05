@@ -9,3 +9,29 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 class Base(DeclarativeBase):
     pass
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+
+
+
+
+
+
+#
+# def get_db():
+#     db = SessionLocal()
+#     try:
+#         yield db
+#     except Exception as e:
+#         db.rollback()
+#         raise HTTPException(status_code=500, detail=f"{e}")
+#     finally:
+#         db.close()
