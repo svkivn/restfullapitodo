@@ -1,19 +1,21 @@
 from datetime import datetime, timedelta
 import jwt
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, OAuth2PasswordBearer
 
 import setting
 from .crud_user import RepoUsers
 from ..database import get_db
 from sqlalchemy.orm import Session
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth/v2/login')
 
-def create_access_token(subject: str, expires_delta: int = None) -> str:
+
+def create_access_token(subject: str, expires_delta=None) -> str:
     if expires_delta is not None:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=setting.ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.utcnow() + timedelta(minutes=int(setting.ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode = {
         "exp": expire,
         "expire": (expire + timedelta(hours=3)).strftime("%Y-%m-%d %H:%M:%S"),
@@ -32,25 +34,25 @@ def decode_token(jwtoken: str):
         return None
 
 
-def get_current_user_id(credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer())):
+credentials_exc = HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="Invalid token or expired token"
+)
+
+
+def get_current_user_id(
+        credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer())
+):
     """
     Get current user id from JWT token
     """
     token = credentials.credentials
-    print(token)
-
     payload = decode_token(token)
     if not payload:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token or expired token",
-        )
+        raise credentials_exc
     user_id = payload.get("sub")
     if not user_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token or expired token",
-        )
+        raise credentials_exc
     return user_id
 
 
@@ -61,10 +63,7 @@ def get_current_user(
     """
     Get current user obj from JWT token
     """
-    credentials_exc = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid token or expired token",
-    )
+
     token = credentials.credentials
     payload = decode_token(token)
     if not payload:
@@ -76,6 +75,21 @@ def get_current_user(
     return current_user
 
 
+def get_current_user_v2(
+        token: str = Depends(oauth2_scheme),
+        db: Session = Depends(get_db)
+):
+    """
+    Get current user obj from JWT token
+    """
+    payload = decode_token(token)
+    if not payload:
+        raise credentials_exc
+    current_user_id = payload.get("sub")
+    if not current_user_id:
+        raise credentials_exc
+    current_user = RepoUsers.get_user_by_id(db=db, id=current_user_id)
+    return current_user
 
 # def create_refresh_token(subject: Union[str, Any], expires_delta: int = None) -> str:
 #     if expires_delta is not None:

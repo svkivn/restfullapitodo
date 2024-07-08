@@ -2,11 +2,12 @@
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status, Header
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..schemas.user import User as UserSchema, UserCreate as UserCreateSchema, UserLogin, User
-from ..services.auth import create_access_token, get_current_user_id, get_current_user
+from ..services.auth import create_access_token, get_current_user_id, get_current_user, get_current_user_v2
 from ..services.crud_user import RepoUsers
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -43,7 +44,7 @@ def login_user(payload: UserLogin, db: Session = Depends(get_db)):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
         )
-    token = create_access_token(user.id, timedelta(minutes=30))
+    token = create_access_token(subject=user.id)
     return {'access_token': token, 'token_type': 'bearer', "user_id": user.id}
 
 
@@ -58,9 +59,27 @@ def read_users_me(db: Session = Depends(get_db), current_user_id: int = Depends(
 
 
 @router.get("/users/me2", response_model=UserSchema)
-def read_users_me2(current_user: User = Depends(get_current_user)):
+def read_users_me2(current_user: User = Depends(get_current_user_v2)):
+    # get_current_user_v2(token: str = Depends(oauth2_scheme),db: Session = Depends(get_db)) -> User
+    #
     if not current_user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found")
     return current_user
+
+
+@router.post("/v2/login")
+def login_user2(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    """
+    Login user based on email and password
+    """
+
+    user = RepoUsers.get_user(db, form_data.username)
+    if not user or not user.check_password(form_data.password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+        )
+    token = create_access_token(subject=user.id)
+    return {'access_token': token, 'token_type': 'bearer', "user_id": user.id}
