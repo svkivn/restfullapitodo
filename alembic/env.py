@@ -18,6 +18,8 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 from src.database import Base
 from src.models.todo import Todo
+from src.models.user import User
+
 target_metadata = Base.metadata
 
 
