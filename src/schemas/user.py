@@ -7,16 +7,20 @@ class BaseUser(BaseModel):
 
 
 class UserCreate(BaseUser):
-    password: str #= Field(..., exclude=True)
+    password: str  # = Field(..., exclude=True)
 
 
 class User(BaseUser):
     id: int
 
+
     class Config:
         orm_mode = True
 
 
+class UserLogin(BaseModel):
+    email: str
+    password: str
 
 
 class Token(BaseModel):

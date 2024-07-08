@@ -11,3 +11,8 @@ class User(Base):
     email: Mapped[str] = mapped_column(unique=True, index=True)
     password: Mapped[str]
 
+    def check_password(self, password):
+        return self.password == password
+
+
+

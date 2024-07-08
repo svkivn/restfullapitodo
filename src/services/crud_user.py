@@ -28,3 +28,9 @@ class RepoUsers:
         db.refresh(db_user)
         return db_user
 
+    @staticmethod
+    def get_user_by_id(db: Session, id: int) -> User | None:
+        stmt = select(User).filter_by(id=id)
+        user = db.scalar(stmt)
+        return user
+
