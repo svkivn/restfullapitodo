@@ -36,7 +36,8 @@ def decode_token(jwtoken: str):
 
 credentials_exc = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
-    detail="Invalid token or expired token"
+    detail="Invalid token or expired token",
+    headers={'WWW-Authenticate': 'Bearer'}
 )
 
 

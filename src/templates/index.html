@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Todo List</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5">SPA - Todo List</h1>
+
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" id="todo-input" placeholder="Add new todo">
+            <div class="input-group-append">
+                <button class="btn btn-primary" id="add-todo">Add Todo</button>
+            </div>
+        </div>
+
+        <ul class="list-group" id="todo-list" >
+            {% for todo in todos %}
+                <li class="list-group-item d-flex justify-content-between align-items-center" id="todo-{{ todo.id }}">
+                    <div>
+                        <input type="checkbox" class="todo-checkbox mr-2" {% if todo.completed %}checked{% endif %}>
+                        <span class="todo-title">{{ todo.title }}</span>
+                    </div>
+                    <button class="btn btn-danger btn-sm delete-todo" data-id="{{ todo.id }}">Delete</button>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#add-todo').click(function() {
+                var title = $('#todo-input').val();
+                $.ajax({
+                    url: "http://127.0.0.1:8000/todo",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({title: title}),
+                    success: function(data) {
+                        $('#todo-list').append(`<li class="list-group-item d-flex justify-content-between align-items-center" id="todo-${data.id}">
+                            <div>
+                                <input type="checkbox" class="todo-checkbox mr-2">
+                                <span class="todo-title">${data.title}</span>
+                            </div>
+                            <button class="btn btn-danger btn-sm delete-todo" data-id="${data.id}">Delete</button>
+                        </li>`);
+                        $('#todo-input').val(''); // Очистка поля вводу після додавання
+                    },
+                    error: function() {
+                        alert('Error adding todo');
+                    }
+                });
+            });
+
+            $(document).on('click', '.delete-todo', function() {
+                var id = $(this).data('id');
+                $.ajax({
+                    url: "http://127.0.0.1:8000/todo/" + id,
+                    type: "DELETE",
+                    success: function() {
+                        $(`#todo-${id}`).remove();
+                    },
+                    error: function() {
+                        alert('Error deleting todo');
+                    }
+                });
+            });
+
+            $(document).on('change', '.todo-checkbox', function() {
+                var id = $(this).closest('li').attr('id').split('-')[1];
+                var complete = $(this).is(':checked');
+                $.ajax({
+                    url: "http://127.0.0.1:8000/todo/" + id,
+                    type: "PUT",
+                    contentType: "application/json",
+                    data: JSON.stringify({complete: complete}),
+                    success: function(data) {
+                        alert('Successfully Updated!');
+                    },
+                    error: function() {
+                        alert('Error updating todo');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

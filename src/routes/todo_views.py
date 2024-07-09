@@ -8,7 +8,7 @@ from ..services.crud_todo import TodoRepo
 router = APIRouter(prefix="/todo", tags=["Todo RESTfull API"])
 
 
-@router.post("/", response_model=SchemaTodo, status_code=201)
+@router.post("/", response_model=SchemaTodo, status_code=201, name="add_todo")
 def create_todo(todo_create: SchemaBaseTodo, db: Session = Depends(get_db)):
     db_todo = TodoRepo.create_todo(db, todo_create)
     return db_todo
@@ -28,7 +28,7 @@ def read_todo(id: int = Path(..., gt=0), db: Session = Depends(get_db)):
     return todo
 
 
-@router.put("/{id}/", response_model=SchemaTodo, status_code=status.HTTP_200_OK)
+@router.put("/{id}", response_model=SchemaTodo, status_code=status.HTTP_200_OK)
 def update_note(payload: SchemaUpdateTodo, db: Session = Depends(get_db), id: int = Path(..., gt=0)):
     todo = TodoRepo.get_todo_id(db=db, id=id)
     if not todo:
