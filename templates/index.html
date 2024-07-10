@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Todo List</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    <h1>Todo List</h1>
+
+    <input type="text" id="todo-input" placeholder="Add new todo">
+    <button id="add-todo">Add Todo</button> <br>
+
+    <ul id="todo-list">
+        {% for todo in todos %}
+            <li id="todo-{{ todo.id }}">
+                <input type="checkbox" class="todo-checkbox"  {% if todo.complete %} checked {% endif %}>
+                <span class="todo-title">{{ todo.title }}</span>
+                <button class="delete-todo" data-id="{{ todo.id }}">Delete</button>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <script>
+        $(document).ready(function() {
+            $('#add-todo').click(function() {
+                var title = $('#todo-input').val();
+                $.ajax({
+                    url: "http://127.0.0.1:8000/todos",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({title: title}),
+                    success: function(data) {
+                        $('#todo-list').append(`<li id="todo-${data.id}">
+                            <input type="checkbox" class="todo-checkbox">
+                            <span class="todo-title">${data.title}</span>
+                            <button class="delete-todo" data-id="${data.id}">Delete</button>
+                        </li>`);
+                        $('#todo-input').val(''); // Очистка поля вводу після додавання
+                    },
+                    error: function() {
+                        alert('Error adding todo');
+                    }
+                });
+            });
+
+            $(document).on('click', '.delete-todo', function() {
+                var id = $(this).data('id');
+                $.ajax({
+                    url: "http://127.0.0.1:8000/todos/" + id,
+                    type: "DELETE",
+                    success: function() {
+                        $(`#todo-${id}`).remove();
+                    },
+                    error: function() {
+                        alert('Error deleting todo');
+                    }
+                });
+            });
+
+            $(document).on('change', '.todo-checkbox', function() {
+                var id = $(this).closest('li').attr('id').split('-')[1];
+                var complete = $(this).is(':checked');
+                $.ajax({
+                    url: "http://127.0.0.1:8000/todos/" + id,
+                    type: "PUT",
+                    contentType: "application/json",
+                    data: JSON.stringify({complete: complete}),
+                    success: function(data) {
+                        alert('Successfully Updated!');
+                    },
+                    error: function() {
+                        alert('Error updating todo');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
